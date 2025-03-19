@@ -2,13 +2,16 @@
 
 
 #include "Mybox.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AMybox::AMybox()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	bReplicates = true;
+	
+	//bReplicates = true;
+	ReplicatedVar = 100;
 	
 }
 
@@ -16,14 +19,7 @@ AMybox::AMybox()
 void AMybox::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (HasAuthority())
-	{
-		GEngine->AddOnScreenDebugMessage(-1,10.f,FColor::Red,"Server");		
-	} else
-	{
-		GEngine->AddOnScreenDebugMessage(-1,10.f,FColor::Green,"Client");
-	}
+	SetReplicates(true);
 	
 }
 
@@ -32,5 +28,12 @@ void AMybox::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AMybox::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AMybox, ReplicatedVar);
 }
 
