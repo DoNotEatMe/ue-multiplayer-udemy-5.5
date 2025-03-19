@@ -9,8 +9,6 @@ AMybox::AMybox()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
-	//bReplicates = true;
 	ReplicatedVar = 100;
 	
 }
@@ -20,6 +18,7 @@ void AMybox::BeginPlay()
 {
 	Super::BeginPlay();
 	SetReplicates(true);
+	SetReplicateMovement(true);
 	
 }
 
@@ -37,3 +36,19 @@ void AMybox::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AMybox, ReplicatedVar);
 }
 
+void AMybox::OnRep_ReplicatedVar()
+{
+	if (HasAuthority())
+	{
+		FVector NewLocation = GetActorLocation() + FVector(0, 0, 100);
+		SetActorLocation(NewLocation);
+		
+		GEngine->AddOnScreenDebugMessage(-1,15.f,FColor::Green,"Server OnRep_ReplicatedVar");
+	} else
+	{
+		GEngine->AddOnScreenDebugMessage(-1,15.f,FColor::Yellow,
+			FString::Printf(TEXT("Client %d OnRep_ReplicatedVar"), UE::GetPlayInEditorID()));
+	}
+
+	
+}
