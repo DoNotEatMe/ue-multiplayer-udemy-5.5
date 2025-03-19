@@ -19,7 +19,11 @@ void AMybox::BeginPlay()
 	Super::BeginPlay();
 	SetReplicates(true);
 	SetReplicateMovement(true);
-	
+
+	if (HasAuthority())
+	{
+		GetWorld()->GetTimerManager().SetTimer(TestTimer,this,&AMybox::DecreaseReplicatedVar, 2.f,false);
+	}
 }
 
 // Called every frame
@@ -36,6 +40,8 @@ void AMybox::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLife
 	DOREPLIFETIME(AMybox, ReplicatedVar);
 }
 
+
+
 void AMybox::OnRep_ReplicatedVar()
 {
 	if (HasAuthority())
@@ -49,6 +55,17 @@ void AMybox::OnRep_ReplicatedVar()
 		GEngine->AddOnScreenDebugMessage(-1,15.f,FColor::Yellow,
 			FString::Printf(TEXT("Client %d OnRep_ReplicatedVar"), UE::GetPlayInEditorID()));
 	}
+}
 
-	
+void AMybox::DecreaseReplicatedVar()
+{
+	if (HasAuthority())
+	{
+		ReplicatedVar -= 1.0f;
+		OnRep_ReplicatedVar();
+		if (ReplicatedVar > 0)
+		{
+			GetWorld()->GetTimerManager().SetTimer(TestTimer,this,&AMybox::DecreaseReplicatedVar, 2.f,false);
+		}
+	}
 }
