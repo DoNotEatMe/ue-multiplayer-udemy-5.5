@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Engine/StaticMeshActor.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -20,7 +21,7 @@ AMultiplayerEduCharacter::AMultiplayerEduCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -47,7 +48,8 @@ AMultiplayerEduCharacter::AMultiplayerEduCharacter()
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+	// Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
@@ -64,7 +66,8 @@ void AMultiplayerEduCharacter::NotifyControllerChanged()
 	// Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<
+			UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
@@ -74,8 +77,8 @@ void AMultiplayerEduCharacter::NotifyControllerChanged()
 void AMultiplayerEduCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
 		// Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
@@ -88,7 +91,10 @@ void AMultiplayerEduCharacter::SetupPlayerInputComponent(UInputComponent* Player
 	}
 	else
 	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+		UE_LOG(LogTemplateCharacter, Error,
+		       TEXT(
+			       "'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."
+		       ), *GetNameSafe(this));
 	}
 }
 
@@ -105,7 +111,7 @@ void AMultiplayerEduCharacter::Move(const FInputActionValue& Value)
 
 		// get forward vector
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
+
 		// get right vector 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
@@ -131,8 +137,38 @@ void AMultiplayerEduCharacter::Look(const FInputActionValue& Value)
 
 void AMultiplayerEduCharacter::ServerRPCFunction_Implementation()
 {
-	if (HasAuthority()){
+	if (HasAuthority())
+	{
+#if 0
 	GEngine->AddOnScreenDebugMessage(-1,15.f,FColor::Red,
 		FString::Printf(TEXT("Called Server RPC function from server %d"), UE::GetPlayInEditorID()));
+#endif
+		if (!SphereMesh) return;
+		
+		if (UWorld* World = GetWorld())
+		{
+			AStaticMeshActor* StaticMeshActor = World->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass());
+			if (StaticMeshActor)
+			{
+				StaticMeshActor->SetReplicates(true);
+				StaticMeshActor->SetReplicateMovement(true);
+				StaticMeshActor->SetMobility(EComponentMobility::Movable);
+
+				FVector SpawnLocation = GetActorLocation() + GetActorRotation().Vector() * 100.f + GetActorUpVector() *
+					50.f;
+				StaticMeshActor->SetActorLocation(SpawnLocation);
+
+				UStaticMeshComponent* StaticMeshcomponent = StaticMeshActor->GetStaticMeshComponent();
+				if (StaticMeshcomponent)
+				{
+					StaticMeshcomponent->SetIsReplicated(true);
+					StaticMeshcomponent->SetSimulatePhysics(true);
+					if (SphereMesh)
+					{
+						StaticMeshcomponent->SetStaticMesh(SphereMesh);
+					}
+				}
+			}
+		}
 	}
 }
