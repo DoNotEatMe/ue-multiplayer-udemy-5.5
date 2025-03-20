@@ -135,16 +135,20 @@ void AMultiplayerEduCharacter::Look(const FInputActionValue& Value)
 }
 
 
-void AMultiplayerEduCharacter::ServerRPCFunction_Implementation()
+void AMultiplayerEduCharacter::ServerRPCFunction_Implementation(int MyArg)
 {
 	if (HasAuthority())
 	{
 #if 0
 	GEngine->AddOnScreenDebugMessage(-1,15.f,FColor::Red,
-		FString::Printf(TEXT("Called Server RPC function from server %d"), UE::GetPlayInEditorID()));
+	FString::Printf(TEXT("Called Server RPC function from server %d"), UE::GetPlayInEditorID()));
 #endif
+
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red,
+		                                 FString::Printf(TEXT("MyArg = %d"), MyArg));
+
 		if (!SphereMesh) return;
-		
+
 		if (UWorld* World = GetWorld())
 		{
 			AStaticMeshActor* StaticMeshActor = World->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass());
@@ -171,4 +175,13 @@ void AMultiplayerEduCharacter::ServerRPCFunction_Implementation()
 			}
 		}
 	}
+}
+
+bool AMultiplayerEduCharacter::ServerRPCFunction_Validate(int MyArg)
+{
+	if (MyArg >= 0 && MyArg <= 100)
+	{
+		return true;
+	}
+	return false;
 }
