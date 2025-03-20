@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Engine/StaticMeshActor.h"
+#include "Kismet/GameplayStatics.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -97,7 +98,6 @@ void AMultiplayerEduCharacter::SetupPlayerInputComponent(UInputComponent* Player
 		       ), *GetNameSafe(this));
 	}
 }
-
 
 
 void AMultiplayerEduCharacter::Move(const FInputActionValue& Value)
@@ -188,4 +188,12 @@ bool AMultiplayerEduCharacter::ServerRPCFunction_Validate(int MyArg)
 		return true;
 	}
 	return false;
+}
+
+void AMultiplayerEduCharacter::ClientRPCFunction_Implementation()
+{
+	if (!ParticleEffect) return;
+
+	UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleEffect, GetActorLocation(), FRotator::ZeroRotator,
+	                                         true, EPSCPoolMethod::AutoRelease);
 }

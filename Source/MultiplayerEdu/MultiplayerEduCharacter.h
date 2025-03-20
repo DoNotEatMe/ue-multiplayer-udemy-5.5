@@ -76,6 +76,12 @@ public:
 	UPROPERTY(EditAnywhere)
 	class UStaticMesh* SphereMesh;
 
+	UFUNCTION(Client, Reliable, BlueprintCallable)
+	void ClientRPCFunction();
+
+	UPROPERTY(EditAnywhere)
+	class UParticleSystem* ParticleEffect;
+
 
 };
 
