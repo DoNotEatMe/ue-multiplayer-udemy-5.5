@@ -36,6 +36,9 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable,BlueprintCallable)
 	void MulticastRPCExplode();
+
+	UPROPERTY(EditAnywhere)
+	class UParticleSystem* ExplosionEffect;
 	
 };
 
