@@ -127,3 +127,12 @@ void AMultiplayerEduCharacter::Look(const FInputActionValue& Value)
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
 }
+
+
+void AMultiplayerEduCharacter::ServerRPCFunction_Implementation()
+{
+	if (HasAuthority()){
+	GEngine->AddOnScreenDebugMessage(-1,15.f,FColor::Red,
+		FString::Printf(TEXT("Called Server RPC function from server %d"), UE::GetPlayInEditorID()));
+	}
+}
