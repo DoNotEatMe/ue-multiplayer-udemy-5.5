@@ -22,8 +22,9 @@ void AMybox::BeginPlay()
 
 	if (HasAuthority())
 	{
-		GetWorld()->GetTimerManager().SetTimer(TestTimer,this,&AMybox::DecreaseReplicatedVar, 2.f,false);
+		GetWorld()->GetTimerManager().SetTimer(TestTimer,this,&AMybox::MulticastRPCExplode, 2.f,false);
 	}
+	
 }
 
 // Called every frame
@@ -68,4 +69,21 @@ void AMybox::DecreaseReplicatedVar()
 			GetWorld()->GetTimerManager().SetTimer(TestTimer,this,&AMybox::DecreaseReplicatedVar, 2.f,false);
 		}
 	}
+}
+
+void AMybox::MulticastRPCExplode_Implementation()
+{
+	if (HasAuthority()){
+		GEngine->AddOnScreenDebugMessage(-1,3.f,FColor::Red,
+		FString::Printf(TEXT("Server %d MulticastRPCFunction_Implementation"), UE::GetPlayInEditorID()));
+		GetWorld()->GetTimerManager().SetTimer(TestTimer,this,&AMybox::MulticastRPCExplode, 2.f,false);
+		
+	} else
+	{
+		GEngine->AddOnScreenDebugMessage(-1,3.f,FColor::Green,
+		FString::Printf(TEXT("Client %d MulticastRPCFunction_Implementation"), UE::GetPlayInEditorID()));
+	}
+
+	
+	
 }

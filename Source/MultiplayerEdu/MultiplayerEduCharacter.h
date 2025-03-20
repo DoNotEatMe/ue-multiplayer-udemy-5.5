@@ -74,6 +74,8 @@ public:
 	void ServerRPCFunction(int MyArg);
 
 	UPROPERTY(EditAnywhere)
-	class UStaticMesh* SphereMesh; 
+	class UStaticMesh* SphereMesh;
+
+
 };
 
